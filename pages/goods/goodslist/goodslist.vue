@@ -42,7 +42,11 @@
 import { reactive } from "vue";
 
 export default {
-
+  onLoad(options) {
+          load.init(this, 'goods_list', 'requestData');
+          var requestUrl = this.data.baseUrl + (typeof options.cat_id != 'undefined' ? '?id=' + options.cat_id : '');
+          this.requestGoodsList(requestUrl);
+      },
   setup() {
 	const data = reactive({
         url: app.globalData.setting.url,
@@ -69,12 +73,7 @@ export default {
         isSearchGoodsShow:false, //搜索显示列表
         searchNavinfoGoods:[], //搜索列表
     })
-    // onLoad: function (options) {
-    //         load.init(this, 'goods_list', 'requestData');
-    //         var requestUrl = this.data.baseUrl + (typeof options.cat_id != 'undefined' ? '?id=' + options.cat_id : '');
-    //         this.requestGoodsList(requestUrl);
-    //     },
-    
+	
     // changeTab: function (e) {
     //     this.resetData();
     //     this.requestGoodsList(e.currentTarget.dataset.href);
