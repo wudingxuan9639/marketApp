@@ -563,7 +563,7 @@ export default {
         }
         
     }
-    return {\
+    return {
 		data,
 		searchBtnG,
     };
