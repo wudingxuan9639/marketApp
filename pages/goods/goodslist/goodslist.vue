@@ -6,7 +6,7 @@
 		            <text class="box_text" @click="searchBtnG">搜索</text>
 		        </view>
 			</view>
-		    <view class="choice_list">
+		   <!-- <view class="choice_list">
 		        <view  v-for="{{data.requestData.goods_list}}" :key="index">
 		            <navigator class="choice_item" url="../tabbar-2/tabbar-2.vue" style="display: inline-block;">
 		                <view class="scenery">
@@ -21,13 +21,13 @@
 		                </view>
 		            </navigator>
 		        </view>
-		    </view>
-		
+		    </view> -->
+		<!-- 
 		    <view class="no-data" v-if="{{!requestData.goods_list || requestData.goods_list.length == 0}}">
 		        <image src="" class="cart-image" />
 		        <view class="no-data-title">没有相关的数据</view>
 		        <navigator url="../tabbar-5/tabbar-5.vue" class="lookat" open-type="navigate"> 去逛逛 </navigator>
-		    </view>
+		    </view> -->
 	</view>
 </template>
 
@@ -40,39 +40,41 @@
 // var request = app.request;
 
 import { reactive } from "vue";
+import sendPostRequest from "../../../utils/sendPostRequest.js";
+import rout from "../../../utils/route.js"
 
 export default {
-  onLoad(options) {
-          load.init(this, 'goods_list', 'requestData');
-          var requestUrl = this.data.baseUrl + (typeof options.cat_id != 'undefined' ? '?id=' + options.cat_id : '');
-          this.requestGoodsList(requestUrl);
-      },
+  // onLoad(options) {
+  //         load.init(this, 'goods_list', 'requestData');
+  //         var requestUrl = this.data.baseUrl + (typeof options.cat_id != 'undefined' ? '?id=' + options.cat_id : '');
+  //         this.requestGoodsList(requestUrl);
+  //     },
   setup() {
-	const data = reactive({
-        url: app.globalData.setting.url,
-        resourceUrl: app.globalData.setting.resourceUrl,
-        currentPage: 1,
-        requestData: null, //请求的数据
-        allData: null, //第一次请求到的所有数据，用于恢复筛选数据
-        openFilterModal: false, //打开筛选弹框
-        baseUrl: '/api/goods/goodsList', //基地址
-        requestUrl: '', //请求的链接
-        goodsInputNum: 1, //选中的商品件数
-        openSpecModal: false, //是否打开规格弹窗
-        specSelect: 0, //选中的组合规格数组spec_goods_price下标
-        data: null, //请求的商品详情数据
-        defaultMenu: true, //默认底部菜单显示状态
-        select: { //选择的(规格)商品的参数，用于显示
-            price: 0,
-            stock: 0,
-            spec_img: '',
-            specName: '',
-            activity: null,
-        },
-        searchContentVale:'', //搜索value
-        isSearchGoodsShow:false, //搜索显示列表
-        searchNavinfoGoods:[], //搜索列表
-    })
+	// const data = reactive({
+ //        url: app.globalData.setting.url,
+ //        resourceUrl: app.globalData.setting.resourceUrl,
+ //        currentPage: 1,
+ //        requestData: null, //请求的数据
+ //        allData: null, //第一次请求到的所有数据，用于恢复筛选数据
+ //        openFilterModal: false, //打开筛选弹框
+ //        baseUrl: '/api/goods/goodsList', //基地址
+ //        requestUrl: '', //请求的链接
+ //        goodsInputNum: 1, //选中的商品件数
+ //        openSpecModal: false, //是否打开规格弹窗
+ //        specSelect: 0, //选中的组合规格数组spec_goods_price下标
+ //        data: null, //请求的商品详情数据
+ //        defaultMenu: true, //默认底部菜单显示状态
+ //        select: { //选择的(规格)商品的参数，用于显示
+ //            price: 0,
+ //            stock: 0,
+ //            spec_img: '',
+ //            specName: '',
+ //            activity: null,
+ //        },
+ //        searchContentVale:'', //搜索value
+ //        isSearchGoodsShow:false, //搜索显示列表
+ //        searchNavinfoGoods:[], //搜索列表
+ //    })
 	
     // changeTab: function (e) {
     //     this.resetData();
@@ -535,32 +537,24 @@ export default {
     //     });
     // },
     // /* 点击搜索事件 */
+	const data = {
+	}
     const searchBtnG = () =>{
         // console.log(JSON.stringify(self.data.requestUrl)+'-----------');
-        if(data.searchContentVale!==''){
-            uni.request({
-                url: "https://hnccw.kaimiteng.com/api/Goods/search", 
-                data: {
-                    "q": data.searchContentVale,
-                },
-                method: "POST",
-                header: {
-                    'content-type': 'application/json' // 默认值
-                },
-                success(res) {
-                    // var data = JSON.parse(res.data.result);
-                    self.setData({
-                        requestData:res.data.result
-                    });
-                    self.setData({ 'requestData': data.requestData });
-                    // console.log(JSON.stringify(res.data.result));
-                    
-                }
-            })
-        }else{
-            self.resetData();
-            self.requestGoodsList(self.data.requestUrl);
-        }
+		const data = {
+		}
+        sendPostRequest(data,rout.search,
+		{
+		  success(res) {
+			  console.log("result",res)
+		    if (res.message === "success") {
+		      operateData(res.data);
+		    }
+		  },
+		  fail() {},
+		},
+		true
+		)
         
     }
     return {
