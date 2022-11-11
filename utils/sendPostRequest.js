@@ -13,7 +13,7 @@ function sendPostRequest(route, data, callBackFn, isShowModal) {
 		// #ifndef H5
 		url: "https://hnccw.kaimiteng.com/api" + route,
 		// #endif
-		method: "POST",
+		method: "GET",
 		data,
 		success(data) {
 			callBackFn.success(data.data);

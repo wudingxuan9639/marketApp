@@ -1,3 +1,4 @@
 export default{
-	search:"/Goods/search"
+	goodslist:"/goods/goodsList",
+	search:"Goods/search"
 }

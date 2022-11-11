@@ -1,12 +1,12 @@
 <template>
 	<view class="content">
 		<view class="co-search-relative">
-		        <view class="box">
-		            <input class="box_input" type="text" model:value="{{searchContentVale}}" placeholder="请时输入关键词" />
-		            <text class="box_text" @click="searchBtnG">搜索</text>
-		        </view>
-			</view>
-		   <view class="choice_list">
+		    <view class="box">
+		        <input class="box_input" type="text" model:value="{{searchContentVale}}" placeholder="请时输入关键词" />
+		        <text class="box_text" @click="searchBtnG">搜索</text>
+		    </view>
+		</view>
+		  <!-- <view class="choice_list">
 		        <view  v-for="{{DataObject.requestData.goods_list}}" :key="index">
 		            <navigator class="choice_item" url="../tabbar-2/tabbar-2.vue" style="display: inline-block;">
 		                <view class="scenery">
@@ -21,7 +21,7 @@
 		                </view>
 		            </navigator>
 		        </view>
-		    </view>
+		    </view> -->
 		<!-- 
 		    <view class="no-data" v-if="{{!requestData.goods_list || requestData.goods_list.length == 0}}">
 		        <image src="" class="cart-image" />
@@ -72,32 +72,33 @@ export default {
         requestGoodsList(e.currentTarget.dataset.href);
     }
 
-    // requestGoodsList: function (requestUrl) {
-    //     const that = this;
-    //     this.data.requestUrl = requestUrl;
-    //     this.setData({
-    //       requestUrl: requestUrl
-    //     })
-    //     requestUrl += (requestUrl.indexOf('?') > 0 ? '&' : '?') + 'p=' + that.data.currentPage;
-    //     load.request(requestUrl, function (res) {
-    //         that.data.currentPage++;
-    //         if (that.data.allData == null) {
-    //             that.data.allData = Object.assign({}, res.data.result);
-    //         }
-    //         wx.stopPullDownRefresh();
-    //     });
-    // },
+    const requestGoodsList = (requestUrl) =>{
+        const that = this;
+        DataObject.requestUrl = requestUrl;
+        this.setData({
+          requestUrl: requestUrl
+        })
+		
+        requestUrl += (requestUrl.indexOf('?') > 0 ? '&' : '?') + 'p=' + that.data.currentPage;
+        load.request(requestUrl, function (res) {
+            that.data.currentPage++;
+            if (that.data.allData == null) {
+                that.data.allData = Object.assign({}, res.data.result);
+            }
+            wx.stopPullDownRefresh();
+        });
+    }
 
-    // onReachBottom: function () {
-    //     if (load.canloadMore()) {
-    //         this.requestGoodsList(this.data.requestUrl);
-    //     }
-    // },
+    const onReachBottom = () =>{
+        if (load.canloadMore()) {
+            requestGoodsList(DataObject.requestUrl);
+        }
+    }
 
-    // onPullDownRefresh: function () {
-    //     this.resetData();
-    //     this.requestGoodsList(this.data.requestUrl);
-    // },
+    const onPullDownRefresh = () =>{
+        resetData();
+        requestGoodsList(DataObject.requestUrl);
+    }
 
     const openFilterModal = () =>{
         // setData({ openFilterModal: true });
@@ -139,30 +140,29 @@ export default {
         checkCartNum(DataObject.goodsInputNum);
     }
 
-    // /** 检查商品 */
-    // initCheckGoods: function (data) {
-    //     const that = this;
-    //     const item_id = data.spec_goods_price.length > 0 ? data.spec_goods_price[0]['item_id'] : '';
-    //     if (that.data.optionItemId) {
-    //         item_id = that.data.optionItemId;
-    //     }
-    //     request.get('/api/goods/activity', {
-    //         data: {
-    //             goods_id: data.goods.goods_id,
-    //             item_id: item_id,
-    //         },
-    //         success: function (res) {
-    //             //初始化规格
-    //             if (res.data.result.goods.activity_is_on == 1) {
-    //                 data.activity = res.data.result.goods
-    //                 that.initSpecsPrice(data);
-    //             } else {
-    //                 data.goods.prom_type = 0;
-    //                 that.initSpecsPrice(data);
-    //             }
-    //         }
-    //     });
-    // },
+    /** 检查商品 */
+    const initCheckGoods = (data) =>{
+        const item_id = data.spec_goods_price.length > 0 ? data.spec_goods_price[0]['item_id'] : '';
+        if (DataObject.optionItemId) {
+            item_id = DataObject.optionItemId;
+        }
+        request.get('/api/goods/activity', {
+            data: {
+                goods_id: data.goods.goods_id,
+                item_id: item_id,
+            },
+            success: function (res) {
+                //初始化规格
+                if (res.data.result.goods.activity_is_on == 1) {
+                    data.activity = res.data.result.goods
+                    initSpecsPrice(data);
+                } else {
+                    data.goods.prom_type = 0;
+                    initSpecsPrice(data);
+                }
+            }
+        });
+    }
     /** 初始化所有规格 */
     const initSpecsPrice = (data) =>{
         const specSelect = 0; //初始化选中第一个规格
@@ -173,9 +173,9 @@ export default {
         }
         //第一次请求的总数据中的activity默认是第一种规格的,可减少一次请求
         specs[0].activity = data.activity;
-        if (this.data.optionItemId) { //指定规格
+        if (DataObject.optionItemId) { //指定规格
             for (const i = 0; i < specs.length; i++) {
-                if (specs[i].item_id == this.data.optionItemId) {
+                if (specs[i].item_id == DataObject.optionItemId) {
                     specSelect = i;
                     break;
                 }
@@ -200,61 +200,57 @@ export default {
                 }
             }
         }
-        setData({
-            specSelect: specSelect,
-            'data.goods_spec_list': list,
-            'data.spec_goods_price': specs
-        });
+		DataObject.specSelect = specSelect;
+		DataObject.goods_spec_list = list ;
+		DataObject.spec_goods_price = specs;
         initSelectSpecGoods();
-    },
-    // /** 关闭规格弹窗 */
-    // closeSpecModal: function (e) {
+    }
+    /** 关闭规格弹窗 */
+    const closeSpecModal = () =>{
+		DataObject.openSpecModal = false;
+    }
+    /** 打开规格弹窗 */
+    const openSpecModel = (e) =>{
+        const that = this;
+        request.get('/api/goods/goodsInfo', {
+            data: { id: e.currentTarget.dataset.goods_id },
+            failRollback: true,
+            success: function (res) {
+				DataObject.data = res.data.result;
+				DataObject.openSpecModal = true;
+				DataObject.isSeparate = true;
+                initData(res.data.result);
+            }
+        });
 
-    //     this.setData({
-    //         openSpecModal: false,
-    //     });
-    // },
-    // /** 打开规格弹窗 */
-    // openSpecModel: function (e) {
-    //     const that = this;
-    //     request.get('/api/goods/goodsInfo', {
-    //         data: { id: e.currentTarget.dataset.goods_id },
-    //         failRollback: true,
-    //         success: function (res) {
-
-    //             that.setData({ data: res.data.result, openSpecModal: true, isSeparate: true });
-    //             that.initData(res.data.result);
-    //         }
-    //     });
-
-    // },
-    // /** 减少购买的商品数量 */
-    // subCartNum: function (e) {
-    //     this.checkCartNum(this.data.goodsInputNum - 1);
-    // },
-    // /** 增加购买的商品数量 */
-    // addCartNum: function (e) {
-    //     this.checkCartNum(this.data.goodsInputNum + 1);
-    // },
-    // /** 输入购买的数量 */
-    // inputCartNum: function (e) {
-    //     this.checkCartNum(Number(e.detail.value));
-    // },
-    // /** 检查购买的数量 */
-    // checkCartNum: function (num) {
-    //     const stock = this.data.select.stock;
-    //     if (this.data.data.spec_goods_price.length > 0) {
-    //         stock = this.data.data.spec_goods_price[this.data.specSelect].store_count;
-    //     }
-    //     if (num > stock || stock == 0) {
-    //         num = stock;
-    //     } else if (num < 1) {
-    //         num = 1;
-    //     }
-    //     this.setData({
-    //         goodsInputNum: num
-    //     });
-    // },
+    }
+    /** 减少购买的商品数量 */
+    const subCartNum = () =>{
+        checkCartNum(DataObject.goodsInputNum - 1);
+    }
+    /** 增加购买的商品数量 */
+    const addCartNum = () =>{
+        checkCartNum(DataObject.goodsInputNum + 1);
+    }
+    /** 输入购买的数量 */
+    const inputCartNum = (e) =>{
+        checkCartNum(Number(e.detail.value));
+    }
+    /** 检查购买的数量 */
+    const checkCartNum = (num) =>{
+        const stock = DataObject.select.stock;
+        if (DataObject.data.spec_goods_price.length > 0) {
+            stock = DataObject.data.spec_goods_price[DataObject.specSelect].store_count;
+        }
+        if (num > stock || stock == 0) {
+            num = stock;
+        } else if (num < 1) {
+            num = 1;
+        }
+        this.setData({
+            goodsInputNum: num
+        });
+    }
     /** 初始化选中的规格商品 */
     const initSelectSpecGoods = () =>{
         const specSelect = DataObject.specSelect;
@@ -271,96 +267,95 @@ export default {
         } else {
             requestSpecInfo(specSelect);
         }
-    },
-    // /** 请求规格商品的活动信息 */
-    // requestSpecInfo: function (specSelect) {
-    //     const that = this;
-    //     const specs = that.data.data.spec_goods_price;
-    //     request.get('/api/goods/activity', {
-    //         data: {
-    //             goods_id: that.data.data.goods.goods_id,
-    //             item_id: specs.length > 0 ? specs[specSelect].item_id : '',
-    //         },
-    //         success: function (res) {
-    //             if (res.data.result.goods.activity_is_on == 1) {
-    //                 that.initActivity(res.data.result.goods);
-    //             }
-    //         }
-    //     });
-    // },
-    // /** 初始化选中的（规格）商品的显示参数 */
-    // initSelectedData: function () {
-    //     const goods = this.data.data.goods;
-    //     const activity = this.data.select.activity;
-    //     const specs = this.data.data.spec_goods_price;
-    //     const specSelect = this.data.specSelect;
-    //     const stock = 0;
-    //     const price = 0;
-    //     if (activity.prom_type == 1 || activity.prom_type == 2) {
-    //         price = activity.shop_price;
-    //         stock = activity.store_count;
-    //     } else if (activity.prom_type == 3) {
-    //         price = activity.shop_price;
-    //         stock = activity.store_count;
-    //     } else if (activity.prom_type == 4) {
-    //         price = activity.shop_price;
-    //         stock = activity.store_count;
-    //     }
-    //     else if (activity.prom_type == 8 && !this.data.isBragain) {
-    //         price = activity.end_price ? activity.end_price : activity.shop_price;
-    //         stock = activity.store_count;
-    //         this.setData({
-    //             'select.bargain_price': price,
-    //         });
-    //     }
-    //     else if (specs.length > 0) {
-    //         price = specs[specSelect].price;
-    //         stock = specs[specSelect].store_count;
-    //     } else {
-    //         price = goods.shop_price;
-    //         stock = goods.store_count;
-    //     }
-    //     price = price.toString().split('.')
-    //     this.setData({
-    //         'select.price': price,
-    //         'select.stock': stock,
-    //         'select.specName': specs.length > 0 ? specs[specSelect].key_name : '',
-    //     });
-    //     if (this.data.isBragain) {
-    //         this.setData({ isBragain: false })
-    //     }
-    // },
-    // /** 点击规格按钮的回调函数 */
-    // selectSpec: function (e) {
-    //     //对商品数量进行判断，对库存进行判断
-    //     const itemId = e.currentTarget.dataset.itemid;
-    //     const listIdx = e.currentTarget.dataset.listidx;
-    //     const list = this.data.data.goods_spec_list;
-    //     if (list[listIdx].selectItemId == itemId) {
-    //         return;
-    //     }
-    //     list[listIdx].selectItemId = itemId;
-    //     const newSpecKeys = [];
-    //     for (const i = 0; i < list.length; i++) {
-    //         newSpecKeys[i] = list[i].selectItemId;
-    //     }
-    //     //item排序,生成key
-    //     const newSpecKeys = util.sortSize(newSpecKeys).join('_');
-    //     const newSpecSelect = 0;
-    //     const specs = this.data.data.spec_goods_price;
-    //     for (const i = 0; i < specs.length; i++) {
-    //         if (specs[i].key == newSpecKeys) {
-    //             newSpecSelect = i;
-    //             break;
-    //         }
-    //     }
-    //     this.setData({
-    //         specSelect: newSpecSelect,
-    //         'data.goods_spec_list': list
-    //     });
-    //     this.initSelectSpecGoods();
-    //     this.checkCartNum(this.data.goodsInputNum);
-    // },
+    }
+    /** 请求规格商品的活动信息 */
+    const requestSpecInfo = (specSelect) =>{
+        const specs = DataObject.data.spec_goods_price;
+        request.get('/api/goods/activity', {
+            data: {
+                goods_id: DataObject.data.goods.goods_id,
+                item_id: specs.length > 0 ? specs[specSelect].item_id : '',
+            },
+            success: function (res) {
+                if (res.data.result.goods.activity_is_on == 1) {
+                    initActivity(res.data.result.goods);
+                }
+            }
+        });
+    }
+    /** 初始化选中的（规格）商品的显示参数 */
+    const initSelectedData = () =>{
+        const goods = DataObject.data.goods;
+        const activity = DataObject.select.activity;
+        const specs = DataObject.data.spec_goods_price;
+        const specSelect = DataObject.specSelect;
+        const stock = 0;
+        const price = 0;
+        if (activity.prom_type == 1 || activity.prom_type == 2) {
+            price = activity.shop_price;
+            stock = activity.store_count;
+        } else if (activity.prom_type == 3) {
+            price = activity.shop_price;
+            stock = activity.store_count;
+        } else if (activity.prom_type == 4) {
+            price = activity.shop_price;
+            stock = activity.store_count;
+        }
+        else if (activity.prom_type == 8 && !DataObject.isBragain) {
+            price = activity.end_price ? activity.end_price : activity.shop_price;
+            stock = activity.store_count;
+            this.setData({
+                'select.bargain_price': price,
+            });
+        }
+        else if (specs.length > 0) {
+            price = specs[specSelect].price;
+            stock = specs[specSelect].store_count;
+        } else {
+            price = goods.shop_price;
+            stock = goods.store_count;
+        }
+        price = price.toString().split('.')
+		DataObject.select.price = price;
+		DataObject.select.stock = stock;
+		DataObject.select.specName = specs.length > 0 ? specs[specSelect].key_name : '';
+        if (DataObject.isBragain) {
+			DataObject.isBragain = false;
+        }
+    }
+    /** 点击规格按钮的回调函数 */
+    const selectSpec = (e) =>{
+        //对商品数量进行判断，对库存进行判断
+        const itemId = e.currentTarget.dataset.itemid;
+        const listIdx = e.currentTarget.dataset.listidx;
+        const list = DataObject.data.goods_spec_list;
+        if (list[listIdx].selectItemId == itemId) {
+            return;
+        }
+        list[listIdx].selectItemId = itemId;
+        const newSpecKeys = [];
+        for (const i = 0; i < list.length; i++) {
+            newSpecKeys[i] = list[i].selectItemId;
+        }
+        //item排序,生成key
+        newSpecKeys = util.sortSize(newSpecKeys).join('_');
+        const newSpecSelect = 0;
+        const specs = DataObject.data.spec_goods_price;
+        for (const i = 0; i < specs.length; i++) {
+            if (specs[i].key == newSpecKeys) {
+                newSpecSelect = i;
+                break;
+            }
+        }
+        // this.setData({
+        //     specSelect: newSpecSelect,
+        //     'data.goods_spec_list': list
+        // });
+		DataObject.specSelect = newSpecSelect;
+		DataObject.data.goods_spec_list = list; 
+        initSelectSpecGoods();
+        checkCartNum(DataObject.goodsInputNum);
+    }
     /** 初始化显示的活动信息 */
     const initActivity = (activity) =>{
         if (activity.prom_type && activity.prom_type != 6) {
@@ -377,8 +372,8 @@ export default {
                 activity.priceName = '预售价';
                 activity.countName = '预售商品';
             } else if (activity.prom_type == 8) { //砍价
-                !this.data.isBragain ? activity.priceName = '砍价享' : activity.priceName = ''
-                !this.data.isBragain ? activity.countName = '砍价活动' : activity.countName = ''
+                !DataObject.isBragain ? activity.priceName = '砍价享' : activity.priceName = ''
+                !DataObject.isBragain ? activity.countName = '砍价活动' : activity.countName = ''
             }
 
             activity.countTime = '--天--时--分--秒';
@@ -391,158 +386,157 @@ export default {
             activity.team_id = activity.prom_id ? activity.prom_id : 0;
             activity.item_id = activity.item_id ? activity.item_id : 0;
         }
-        this.setData({ 'select.activity': activity });
-        this.destroyActivityTimer();
-        this.createActivityTimer();
-        this.initSelectedData();
-    },
+        // this.setData({ 'select.activity': activity });
+		DataObject.select.activity = activity;
+        destroyActivityTimer();
+        createActivityTimer();
+        initSelectedData();
+    }
 
-    // /** 检查是否倒计时是否结束 */
-    // checkActivityTime: function () {
-    //     const that = this;
-    //     const activity = that.data.select.activity;
-    //     const remainTime = activity.end_time * 1000 - (new Date()).getTime() + activity.diffTime;
-    //     if (remainTime > 0) {
-    //         remainTime = util.remainTime(remainTime);
-    //         that.setData({ 'select.activity.countTime': remainTime });
-    //     } else {
-    //         that.requestSpecInfo(that.data.specSelect);
-    //         return;
-    //     }
-    // },
+    /** 检查是否倒计时是否结束 */
+    const checkActivityTime = () =>{
+        const activity = DataObjectD.select.activity;
+        const remainTime = activity.end_time * 1000 - (new Date()).getTime() + activity.diffTime;
+        if (remainTime > 0) {
+            remainTime = util.remainTime(remainTime);
+            // that.setData({ 'select.activity.countTime': remainTime });
+			DataObject.select.activity.countTime = remainTime;
+        } else {
+            requestSpecInfo(DataObject.specSelect);
+            return;
+        }
+    }
 
-    // /** 创建活动倒计时定时器 */
-    // createActivityTimer: function () {
-    //     const that = this;
-    //     const activity = that.data.select.activity;
-    //     if (!activity.prom_type || activity.prom_type == 6 || that.data.isBragain) {
-    //         return;
-    //     }
-    //     that.data.timer = setInterval(function () {
-    //         that.checkActivityTime();
-    //     }, 1000);
-    // },
+    /** 创建活动倒计时定时器 */
+    const createActivityTimer = () =>{
+        const activity = DataObject.select.activity;
+        if (!activity.prom_type || activity.prom_type == 6 || DataObject.isBragain) {
+            return;
+        }
+        DataObject.timer = setInterval(function () {
+            checkActivityTime();
+        }, 1000);
+    }
 
-    // /** 销毁活动倒计时定时器 */
-    // destroyActivityTimer: function () {
-    //     if (this.data.timer) {
-    //         clearInterval(this.data.timer);
-    //         this.data.timer = null;
-    //     }
-    // },
-    // /** 购买虚拟商品 */
-    // buyVirtualGoods: function (data) {
-    //     //检查用户是否登录方可操作立即购买
-    //     if (!app.auth.isAuth()) {
-    //         app.showLoading(null, 1500);
-    //         app.getUserInfo();
-    //         return;
-    //     }
-    //     Object.assign(data, {
-    //         goods_name: this.data.data.goods.goods_name,
-    //         spec_name: this.data.select.specName,
-    //         price: this.data.select.price,
-    //     });
-    //     wx.navigateTo({
-    //         url: '/pages/virtual/buy_step/buy_step?' + util.Obj2Str(data)
-    //     });
-    // },
-    // /** 加入购物车 */
-    // addCart: function (e) {
-    //     const that = this;
-    //     const itemId = 0;
-    //     const specs = this.data.data.spec_goods_price;
-    //     //区分有规格和无规格
-    //     if (specs.length > 0) {
-    //         if (specs[this.data.specSelect].store_count <= 0) {
-    //             return app.showWarning("库存已为空！");
-    //         }
-    //         itemId = specs[this.data.specSelect].item_id;
-    //     } else {
-    //         if (this.data.data.goods.store_count <= 0) {
-    //             return app.showWarning("库存已为空！");
-    //         }
-    //     }
-    //     if (this.data.goodsInputNum <= 0) {
-    //         return app.showWarning("商品数量不能为0");
-    //     }
-    //     const data = {
-    //         goods_id: this.data.data.goods.goods_id,
-    //         goods_num: this.data.goodsInputNum,
-    //         item_id: itemId,
-    //         form: 1
-    //     };
-    //     if (this.data.data.goods.is_virtual) {
-    //         return this.buyVirtualGoods(data);
-    //     }
-    //     //检查用户是否登录方可操作立即购买
-    //     if (!app.auth.isAuth()) {
-    //         app.showLoading(null, 1500);
-    //         app.getUserInfo();
-    //         return;
-    //     }
+    /** 销毁活动倒计时定时器 */
+    const destroyActivityTimer = () =>{
+        if (DataObject.timer) {
+            clearInterval(DataObject.timer);
+            DataObject.timer = null;
+        }
+    }
+    /** 购买虚拟商品 */
+    const buyVirtualGoods = (data) =>{
+        //检查用户是否登录方可操作立即购买
+        if (!app.auth.isAuth()) {
+            app.showLoading(null, 1500);
+            app.getUserInfo();
+            return;
+        }
+        Object.assign(data, {
+            goods_name: DataObject.data.goods.goods_name,
+            spec_name: DataObject.select.specName,
+            price: DataObject.select.price,
+        });
+        uni.navigateTo({
+            url: '/pages/virtual/buy_step/buy_step?' + util.Obj2Str(data)//虚拟商品页面？？？
+        });
+    }
+    /** 加入购物车 */
+    const addCart = (e) =>{
+        const that = this;
+        const itemId = 0;
+        const specs = DataObject.data.spec_goods_price;
+        //区分有规格和无规格
+        if (specs.length > 0) {
+            if (specs[DataObject.specSelect].store_count <= 0) {
+                return app.showWarning("库存已为空！");
+            }
+            itemId = specs[DataObject.specSelect].item_id;
+        } else {
+            if (DataObject.data.goods.store_count <= 0) {
+                return app.showWarning("库存已为空！");
+            }
+        }
+        if (DataObject.goodsInputNum <= 0) {
+            return app.showWarning("商品数量不能为0");
+        }
+        const data = {
+            goods_id: DataObject.data.goods.goods_id,
+            goods_num: DataObject.goodsInputNum,
+            item_id: itemId,
+            form: 1
+        };
+        if (DataObject.data.goods.is_virtual) {
+            return buyVirtualGoods(data);
+        }
+        //检查用户是否登录方可操作立即购买
+        if (!app.auth.isAuth()) {
+            app.showLoading(null, 1500);
+            app.getUserInfo();
+            return;
+        }
 
-    //     if (e.currentTarget.dataset.action == 'add') { //加入购物车
-    //         if (this.data.shippingCost < 0 || this.data.select.stock <= 0) {
-    //             return;
-    //         }
-    //         request.post('/api/cart/addCart', {
-    //             data: data,
-    //             success: function (res) {
-    //                 wx.showModal({
-    //                     title: '添加成功！',
-    //                     cancelText: '去购物车',
-    //                     confirmText: '再逛逛',
-    //                     success: function (res) {
-    //                         if (res.cancel) {
-    //                             wx.reLaunch({
-    //                                 url: '/pages/cart/cart/cart'
-    //                             });
-    //                         } else {
-    //                             that.requestCardNum();
-    //                         }
-    //                     }
-    //                 });
-    //             }
-    //         });
-    //     } else if (e.currentTarget.dataset.action == 'exchange') { //立即兑换
-    //         this.exchange(data);
-    //     } else { //立即购买
-    //         this.buyNow(data);
-    //     }
-    // },
-    // /** 立即购买 */
-    // buyNow: function (data) {
-    //     //检查用户是否登录方可操作立即购买
-    //     if (!app.auth.isAuth()) {
-    //         app.showLoading(null, 1500);
-    //         app.getUserInfo();
-    //         return;
-    //     }
-    //     if (this.data.shippingCost < 0 || this.data.select.stock <= 0) {
-    //         return;
-    //     }
-    //     Object.assign(data, {
-    //         action: 'buy_now',
-    //     });
-    //     wx.navigateTo({
-    //         url: '/pages/cart/cart2/cart2?' + util.Obj2Str(data)
-    //     });
-    // },
+        if (e.currentTarget.dataset.action == 'add') { //加入购物车
+            if (DataObject.shippingCost < 0 || DataObject.select.stock <= 0) {
+                return;
+            }
+            request.post('/api/cart/addCart', {
+                data: data,
+                success: function (res) {
+                    uni.showModal({
+                        title: '添加成功！',
+                        cancelText: '去购物车',
+                        confirmText: '再逛逛',
+                        success: function (res) {
+                            if (res.cancel) {
+                                uni.reLaunch({
+                                    url: '/pages/cart/cart/cart'
+                                });
+                            } else {
+                                that.requestCardNum();
+                            }
+                        }
+                    });
+                }
+            });
+        } else if (e.currentTarget.dataset.action == 'exchange') { //立即兑换
+            this.exchange(data); //这个函数从哪里来的？？？
+        } else { //立即购买
+            buyNow(data);
+        }
+    }
+    /** 立即购买 */
+    const buyNow = (data) =>{
+        //检查用户是否登录方可操作立即购买
+        if (!app.auth.isAuth()) {
+            app.showLoading(null, 1500);
+            app.getUserInfo();
+            return;
+        }
+        if (DataObject.shippingCost < 0 || DataObject.select.stock <= 0) {
+            return;
+        }
+        Object.assign(data, {
+            action: 'buy_now',
+        });
+        uni.navigateTo({
+            url: '/pages/cart/cart2/cart2?' + util.Obj2Str(data)
+        });
+    }
     // /* 点击搜索事件 */
 	const data = {
 	}
+	console.log("route",rout.goodslist)
     const searchBtnG = () =>{
         // console.log(JSON.stringify(self.data.requestUrl)+'-----------');
-		const data = {
-		}
-        sendPostRequest(data,rout.search,
+        sendPostRequest(rout.goodslist,{},
 		{
 		  success(res) {
-			  console.log("result",res)
-		    if (res.message === "success") {
-		      operateData(res.data);
-		    }
+			  // console.log("result",res)
+		   //  if (res.message === "success") {
+		   //    operateData(res.data);
+		   //  }
 		  },
 		  fail() {},
 		},
